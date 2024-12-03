@@ -18,12 +18,12 @@ class Customer extends Model
 
     protected $fillable = [
         'name',
-        'domicile',
+        'address',
         'gender',
     ];
 
-    function sales(): HasMany
+    function orders(): HasMany
     {
-        return $this->hasMany(Sale::class, 'customer_id', 'id');
+        return $this->hasMany(Order::class, 'customer_id', 'id');
     }
 }

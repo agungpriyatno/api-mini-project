@@ -22,7 +22,7 @@ class CustomerFactory extends Factory
     {
         return  [
             'name' => fake()->name,
-            'domicile' => fake()->address,
+            'address' => fake()->address,
             'gender' => fake()->randomElement(['MALE', 'FEMALE']),
         ];
     }

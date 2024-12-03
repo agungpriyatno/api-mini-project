@@ -3,25 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Order;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Http\Request;
 
-class SaleController extends Controller
+class OrderController extends Controller
 {
     function find(Request $request, string $id)
     {
-        $data = Sale::where('id', $id)->with('customers', 'sale_items.item')->first();
-        if ($data == null) abort(404, 'Item not found');
+        $data = Order::where('id', $id)->with('customers', 'order_products.products')->first();
+        if ($data == null) abort(404, 'Order not found');
         return response()->json([
-            'message' => 'Item found successfully',
+            'message' => 'Order found successfully',
             'data' => $data
         ], 200);
     }
 
     public function findMany(Request $request)
     {
-        $query = Sale::query()->join('customers', 'sales.customer_id', '=', 'customers.id')->with('customers', 'sale_items.item');
+        $query = Order::query()->with('customers', 'order_products.products');
 
         if ($request->has('filter')) {
             $filters = $request->filter;
@@ -62,7 +64,7 @@ class SaleController extends Controller
         $data = $query->paginate($perPage);
 
         return response()->json([
-            'message' => 'Customers found successfully',
+            'message' => 'Order found successfully',
             'data' => $data->items(),
             'total' => $data->total(),
             'per_page' => $data->perPage(),
@@ -75,41 +77,41 @@ class SaleController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|string|exists:customers,id',
-            'items' => 'array|min:1',
-            'items.*.item_code' => 'required|string|exists:items,code',
-            'items.*.quantity' => 'required|integer|min:1',
+            'products' => 'array|min:1',
+            'products.*.product_code' => 'required|string|exists:products,code',
+            'products.*.quantity' => 'required|integer|min:1',
         ]);
 
         $total_price = 0;
 
-        foreach ($validated['items'] as $key => $item) {
-            $validated['items'][$key]['item_code'] = $item['item_code'];
-            $validated['items'][$key]['quantity'] = $item['quantity'];
-            $validated['items'][$key]['total_price'] = $item['quantity'] * Item::where('code', $item['item_code'])->first()['price'];
-            $total_price += $validated['items'][$key]['total_price'];
+        foreach ($validated['products'] as $key => $item) {
+            $validated['products'][$key]['product_code'] = $item['product_code'];
+            $validated['products'][$key]['quantity'] = $item['quantity'];
+            $validated['products'][$key]['total_price'] = $item['quantity'] * Product::where('code', $item['product_code'])->first()['price'];
+            $total_price += $validated['products'][$key]['total_price'];
         }
 
-        $sale = Sale::create([
+        $sale = Order::create([
             'customer_id' => $validated['customer_id'],
             'total_price' => $total_price
         ]);
 
-        $sale->sale_items()->createMany($validated['items']);
+        $sale->order_products()->createMany($validated['products']);
 
 
         return response()->json([
-            'message' => 'Sale created successfully',
+            'message' => 'Order created successfully',
             'data' => $sale,
         ]);
     }
 
     function delete(Request $request, string $id)
     {
-        $data = Sale::where('id', $id)->delete();
-        if ($data == 0) abort(404, 'Item not found');
+        $data = Order::where('id', $id)->delete();
+        if ($data == 0) abort(404, 'Order not found');
 
         return response()->json([
-            'message' => 'Item deleted successfully',
+            'message' => 'Order deleted successfully',
             'data' => $data
         ], 200);
     }

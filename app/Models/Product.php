@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-class Item extends Model
+class Product extends Model
 {
     use HasFactory;
 
-    protected $table = 'items';
+    protected $table = 'products';
     protected $primaryKey = 'code';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -30,15 +30,13 @@ class Item extends Model
     ];
 
 
-
-
-    function sale_items(): HasMany
+    function order_products(): HasMany
     {
-        return $this->hasMany(SaleItem::class, 'item_code', 'code');
+        return $this->hasMany(OrderProduct::class, 'product_code', 'code');
     }
 
-    function sales(): BelongsToMany
+    function orders(): BelongsToMany
     {
-        return $this->belongsToMany(Sale::class, SaleItem::class, 'item_code', 'sale_id')->withPivot('quantity', 'total_price');
+        return $this->belongsToMany(Order::class, OrderProduct::class, 'item_code', 'order_id')->withPivot('quantity', 'total_price');
     }
 }

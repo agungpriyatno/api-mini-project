@@ -2,28 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class RecapController extends Controller
 {
     public function totalPrice(Request $request)
     {
-        $query = Sale::query()->with('customers', 'sale_items')->withSum('sale_items', 'quantity');
+        $query = Order::query()->with('customers', 'order_products')->withSum('order_products', 'quantity');
 
-        if ($request->has('filter')) {
-            $filters = $request->filter;
-            foreach ($filters as $relation => $conditions) {
-                if (is_array($conditions)) {
-                    $query->whereHas($relation, function ($q) use ($conditions) {
-                        foreach ($conditions as $field => $value) {
-                            $q->where($field, 'like', '%' . $value . '%');
-                        }
-                    });
-                } else {
-                    $query->where($relation, 'like', '%' . $conditions . '%');
-                }
-            }
+        if ($request->has('customer_id')) {
+            $query->where('customer_id', $request->customer_id);    
+        }
+
+        if ($request->has('product_code')) {
+            $query->whereHas('order_products', function ($q) use ($request) {
+                $q->where('product_code', $request->product_code);
+            });
         }
 
         if ($request->has('start_date') && $request->has('end_date')) {
@@ -36,7 +31,7 @@ class RecapController extends Controller
 
         $total_price = $query->sum('total_price');
         $total_transaction = $query->count();
-        $total_quantity = $query->pluck('sale_items_sum_quantity')->sum();
+        $total_quantity = $query->pluck('order_products_sum_quantity')->sum();
         
         return response()->json([
             'message' => 'Total price found successfully',

@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Item;
+
+use App\Models\Product;
 use Illuminate\Http\Request;
 
-class ItemController extends Controller
+class ProductController extends Controller
 {
     public function find(Request $request, string $code)
     {
-        $data = Item::query()->where('code', $code)->with('sale_items.sale')->first();
-        if ($data == null) abort(404, 'Item not found');
+        $data = Product::query()->where('code', $code)->with('order_products.orders')->first();
+        if ($data == null) abort(404, 'Product not found');
         return response()->json([
-            'message' => 'Item found successfully',
+            'message' => 'Product found successfully',
             'data' => $data
         ], 200);
     }
 
     public function findMany(Request $request)
     {
-        $query = Item::query()->with('sale_items.sale');
+        $query = Product::query()->with('order_products.orders');
         if ($request->has('filter')) {
             $filters = $request->filter;
             foreach ($filters as $relation => $conditions) {
@@ -59,7 +60,7 @@ class ItemController extends Controller
         $data = $query->paginate($perPage);
 
         return response()->json([
-            'message' => 'Items found successfully',
+            'message' => 'Products found successfully',
             'data' => $data->items(),
             'total' => $data->total(),
             'per_page' => $data->perPage(),
@@ -79,7 +80,7 @@ class ItemController extends Controller
             'price' => 'required',
         ]);
 
-        $data = Item::create([
+        $data = Product::create([
             'code' => $request->code,
             'name' => $request->name,
             'category' => $request->category,
@@ -87,7 +88,7 @@ class ItemController extends Controller
         ]);
         
         return response()->json([
-            'message' => 'Item created successfully',
+            'message' => 'Product created successfully',
             'data' => $data
         ], 200);
     }
@@ -100,24 +101,24 @@ class ItemController extends Controller
             'price' => 'required',
         ]);
 
-        $data = Item::where('code', $code)->update([
+        $data = Product::where('code', $code)->update([
             'name' => $request->name,
             'category' => $request->category,
             'price' => $request->price,
         ]);
 
         return response()->json([
-            'message' => 'Item updated successfully',
+            'message' => 'Product updated successfully',
             'data' => $data
         ], 200);
     }
 
     public function delete(Request $request, string $code)
     {
-        $data = Item::where('code', $code)->delete();
-        if($data == 0) abort(404, 'Item not found');
+        $data = Product::where('code', $code)->delete();
+        if($data == 0) abort(404, 'Product not found');
         return response()->json([
-            'message' => 'Item deleted successfully',
+            'message' => 'Product deleted successfully',
             'data' => $data
         ], 200);
     }

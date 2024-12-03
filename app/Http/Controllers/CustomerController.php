@@ -10,7 +10,7 @@ class CustomerController extends Controller
 
     public function find(Request $request, string $id)
     {
-        $data = Customer::where('id', $id)->with('sales')->first();
+        $data = Customer::where('id', $id)->with('orders.order_products.products')->first();
         if ($data == null) abort(404, 'Customer not found');
         return response()->json([
             'message' => 'Customer found successfully',
@@ -20,7 +20,7 @@ class CustomerController extends Controller
 
     public function findMany(Request $request)
     {
-        $query = Customer::query()->with('sales');
+        $query = Customer::query()->with('orders.order_products');
 
         if ($request->has('filter')) {
             $filters = $request->filter;
@@ -74,13 +74,13 @@ class CustomerController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'domicile' => 'required',
+            'address' => 'required',
             'gender' => ['required', 'in:MALE,FEMALE'],
         ]);
 
         $data = Customer::create([
             'name' => $request->name,
-            'domicile' => $request->domicile,
+            'address' => $request->address,
             'gender' => $request->gender,
         ]);
 
@@ -94,19 +94,20 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'domicile' => 'required',
+            'address' => 'required',
             'gender' => ['required', 'in:MALE,FEMALE'],
         ]);
-
+        
         $data = Customer::where('id', $id)->update([
             'name' => $request->name,
-            'domicile' => $request->domicile,
+            'address' => $request->address,
             'gender' => $request->gender,
         ]);
 
+
+
         return response()->json([
-            'message' => 'Customer updated successfully',
-            'data' => $data
+            'message' => 'Customer updated successfully'
         ], 200);
     }
 
@@ -114,8 +115,7 @@ class CustomerController extends Controller
     {
         $data = Customer::where('id', $id)->delete();
         return response()->json([
-            'message' => 'Customer deleted successfully',
-            'data' => $data
+            'message' => 'Customer deleted successfully'
         ], 200);
     }
 }

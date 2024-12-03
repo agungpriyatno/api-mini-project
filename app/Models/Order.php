@@ -12,11 +12,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-class Sale extends Model
+class Order extends Model
 {
     use HasUuids;
     public $incrementing = false;
-    protected $table = 'sales';
+    protected $table = 'orders';
     protected $primaryKey = 'id';
 
     protected $fillable = [
@@ -34,14 +34,14 @@ class Sale extends Model
         return  $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
 
-    function sale_items(): HasMany
+    function order_products(): HasMany
     {
-        return $this->hasMany(SaleItem::class, 'sale_id', 'id');
+        return $this->hasMany(OrderProduct::class, 'order_id', 'id');
     }
 
 
-    function items(): BelongsToMany
+    function products(): BelongsToMany
     {
-        return $this->belongsToMany(Item::class, SaleItem::class, 'sale_id', 'item_code')->withPivot('quantity', 'total_price');
+        return $this->belongsToMany(Product::class, OrderProduct::class, 'order_id', 'product_code')->withPivot('quantity', 'total_price');
     }
 }
